@@ -1,1 +1,1 @@
-# smote_compositional_data
+# SMOTE for compositional data
