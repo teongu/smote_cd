@@ -1,12 +1,16 @@
+# This file provides functions to perform the oversampling and undersampling of compositional data.
+# Author : Teo Nguyen
+
 import time
 import random
 import numpy as np
 import pandas as pd
-from tqdm.notebook import tqdm
 import matplotlib.pyplot as plt
-from multiprocessing.pool import Pool
 from scipy.stats import gmean
 from sklearn.preprocessing import StandardScaler
+
+# tqdm package is used to print the progression bar
+from tqdm.notebook import tqdm
 
 
 ##############################################################################################################
