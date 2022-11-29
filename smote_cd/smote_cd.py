@@ -1,7 +1,6 @@
 # This file provides functions to perform the oversampling and undersampling of compositional data.
 # Author : Teo Nguyen
 
-import time
 import random
 import numpy as np
 import pandas as pd
@@ -9,14 +8,25 @@ import matplotlib.pyplot as plt
 from scipy.stats import gmean
 from sklearn.preprocessing import StandardScaler
 
-# tqdm package is used to print the progression bar
-from tqdm.notebook import tqdm
-
 
 ##############################################################################################################
 
 def distance_simplex(point1,point2):
-    """ Computes the distance in the simplex between point1 and point2. """
+    """ 
+    Compute the distance in the simplex between two vectors point1 and point2. 
+    
+    Parameters
+    ---------
+    point1 : array_like, shape (n,)
+        Vector to compute the distance.
+    point2 : array_like, shape (n,)
+        Vector to compute the distance.
+        
+    Returns
+    -------
+    float
+        The distance (in the simplex) between point1 and point2. 
+    """
     # copy the points to replace the 0
     x=np.copy(point1)
     y=np.copy(point2)
@@ -29,7 +39,25 @@ def distance_simplex(point1,point2):
 ##############################################################################################################
 
 def create_logratio_point(p1,p2,w1,w2):
-    """ Creates a new point by using the logratio transform. """
+    """ 
+    Create a new point in the simplex by using the logratio transform. 
+    
+    Parameters
+    ----------
+    p1 : array_like, shape (n,)
+        First point to create a new point.
+    p2 : array_like, shape (n,)
+        Second point to create a new point.
+    w1 : float 
+        Weight associated to the first point ``0 <= w1 <= l``.
+    w2 : float
+        Weight associated to the second point ``w2 = 1 - w1``.
+    
+    Returns
+    -------
+    numpy.ndarray, shape (n,)
+        The new point created in the simplex.
+    """
     lrp1=np.copy(np.array(p1,dtype='float'))
     lrp2=np.copy(np.array(p2,dtype='float'))
     # transform from the euclidian space to the logratio
@@ -43,73 +71,124 @@ def create_logratio_point(p1,p2,w1,w2):
     new_point[new_point<1e-19]=0
     return(new_point)
 
-def create_logratio_point_tri(p,p1,p2,w1,w2):
-    """ Creates a new point by using the logratio transform, based on three base points. """
-    lrp=np.copy(np.array(p,dtype='float'))
-    lrp1=np.copy(np.array(p1,dtype='float'))
-    lrp2=np.copy(np.array(p2,dtype='float'))
-    # transform from the euclidian space to the logratio
-    lrp[lrp==0]=1e-20
-    lrp1[lrp1==0]=1e-20
-    lrp2[lrp2==0]=1e-20
-    lrp=np.log(lrp/gmean(lrp))
-    lrp1=np.log(lrp1/gmean(lrp1))
-    lrp2=np.log(lrp2/gmean(lrp2))
-    new_point=w1*lrp1+w2*lrp2+(1-w1-w2)*lrp
-    # transform from the logratio to the euclidian space
-    new_point=np.exp(new_point)/sum(np.exp(new_point))
-    new_point[new_point<1e-19]=0
-    return(new_point)
-
 
 ##############################################################################################################
 # These are the operations from Wang 2015 "Principal component analysis for compositional data vectors" 
 # https://link.springer.com/article/10.1007/s00180-015-0570-1
 
 def closure(x):
-    # Equation 6
+    """ 
+    Equation 6 from Wang 2015 "Principal component analysis for compositional data vectors".
+    
+    Parameters
+    ----------
+    x : array_like, shape (n,)
+        The vector on which the closure operator is performed.
+    
+    Returns
+    -------
+    numpy.ndarray, shape (n,)
+        The closure vector of x.
+    """
     return(np.array(x)/np.sum(x))
 
 def perturbation(x,y):
-    # Equation 4
+    """ 
+    Equation 4 from Wang 2015 "Principal component analysis for compositional data vectors".
+    
+    Parameters
+    ----------
+    x : array_like, shape (n,)
+        The vector on which the closure operator is performed.
+    y : array_like shape (n,)
+        The vector on which the perturbation operator is performed.
+    
+    Returns
+    -------
+    numpy.ndarray, shape (n,)
+        The perturbation operator between x and y.
+    """
     return(closure(np.array(x)*np.array(y)))
 
 def power(beta,x):
-    # Equation 5
+    """ 
+    Equation 5 from Wang 2015 "Principal component analysis for compositional data vectors".
+    
+    Parameters
+    ----------
+    beta : float
+        The scalar to perform the power operator.
+    x : array_like, shape (n,)
+        The vector to perform the power operator.
+    
+    Returns
+    -------
+    numpy.ndarray, shape (n,)
+        The power vector between x and beta.
+    """
     return(closure(np.power(x,beta)))
 
 def create_new_point(p1,p2,w):
+    """
+    Create a new point in the simplex by using the compositional distance operations in the simplex. 
+    
+    Parameters
+    ----------
+    p1 : array_like, shape (n,)
+        First point to create a new point.
+    p2 : array_like, shape (n,)
+        Second point to create a new point.
+    w : float 
+        Weight associated to the first point ``0 <= w <= l``.
+    
+    Returns
+    -------
+    numpy.ndarray, shape (n,)
+        The new created point with the compositional distance operations.
+    """
     # Corresponds to w*p1 + (1-w)*p2
     return(perturbation(power(w,p1),power(1-w,p2)))
-
-
-def create_new_point_tri(p,p1,p2,w1,w2):
-    # Corresponds to w1*p1 + w2*p2 + (1-w1-w2)*p
-    return(perturbation(perturbation(power(w1,p1),power(w2,p2)),power(1-w1-w2,p)))
 
 
 
 ##############################################################################################################
 
 def oversampling_multioutput(df_features,df_labels,label_distance='logratio',normalize=False,
-                             k=5,n_iter_max=100,norm=2,verbose=0,choice_new_point='min', use_three_points=False):
-    """ This function performs the oversampling on compositional data. 
-    INPUT : 
-        - df_features (pd.DataFrame, pd.Series, np.array or list) : The features (X) of the data to be oversampled.
-        - df_labels (pd.DataFrame, pd.Series, ndarray or list) : The labels (y) of the data to be oversampled.
-        - label_distance ({'compositional', 'euclidian', 'logratio'}; default='logratio') : The distance to be used to compute the label of the new point based on two existing points and a random weight.
-        - normalize (bool; default=False) : Whether to normalize the features at the beggining of the algorithm.
-        - k (int; default=5) : The number of nearest neighbors among which a random neighbor is chosen.
-        - n_iter_max (int; default=100) : The maximum number of iterations to be performed.
-        - norm ({non-zero int, inf, -inf, 'fro', 'nuc'}; default=2) : The order of the norm used to compute the nearest neighbors.
-        - verbose (int or bool; default=0) : Whether to print text detailing the steps of the algorithm.
-        - choice_new_point ({'min', 'random'}; default='min') : How a new point is selected : randomly or in the smallest class.
-        - use_three_point (bool; default=False) : If true, will use three base points to create a new point. 
-    OUTPUT :
-        - features (ndarray) : The oversampled features, containing the old ones and the created ones.
-        - labels (ndarray) : The oversampled labels, containing the old ones and the created ones.
+                             k=5,n_iter_max=100,norm=2,verbose=0,choice_new_point='min'):
+    """ 
+    Perform the oversampling on data which has a compositional label. 
+    
+    Parameters
+    ----------
+    df_features : array_like, shape (n,k)
+        The features (X) of the data to be oversampled.
+    df_labels : array_like, shape (n,q)
+        The labels (y) of the data to be oversampled.
+    label_distance : {'compositional', 'euclidian', 'logratio'}, optional
+        The distance to be used to compute the label of the new point based on two existing points and a random weight 
+        (the default is 'logratio').
+    normalize : bool, optional
+        Whether to normalize the features at the beggining of the algorithm (the default is False).
+    k : int, optional
+        The number of nearest neighbors among which a random neighbor is chosen (the default is 5).
+    n_iter_max : int, optional
+        The maximum number of iterations to be performed (the default is 100).
+    norm : {non-zero int, inf, -inf, 'fro', 'nuc'}, optional
+        The order of the norm used to compute the nearest neighbors (the default is 2).
+    verbose : int or bool, optional
+        Whether to print text detailing the steps of the algorithm (the default is 0).
+    choice_new_point : {'min', 'random'}, optional
+        How a new point is selected : randomly or in the smallest class (the default is 'min').
+    
+    Returns
+    -------
+    features : numpy.ndarray, shape (n+m,k)
+        The oversampled features, containing the old ones (first n values) and the created ones (last m values).
+    labels : numpy.ndarray, shape (n+m,q)
+        The oversampled labels, containing the old ones (first n values) and the created ones (last m values).
     """
     
+    # Checking the types
     if (type(df_features)==pd.DataFrame) | (type(df_features)==pd.Series) :
         features=df_features.values
     elif (type(df_features)==np.ndarray) | (type(df_features)==list):
@@ -146,14 +225,6 @@ def oversampling_multioutput(df_features,df_labels,label_distance='logratio',nor
     v_sum_not_reach=list(np.copy(v_sum))
     del v_sum_not_reach[ind_threshold]
     v_sum_not_reach=np.array(v_sum_not_reach)
-    
-    # Creating the progression bar
-    if verbose :
-        pbar=tqdm(total=int(n_iter_max))
-        pourcent=100/q
-        print('Progression :',pourcent,
-              '% before the first iteration\nClass distribution  :\n    -classes reaching the threshold :',
-              vec_reach_threshold,"\n    -classes not reaching the threshold :",vec_not_reach)
     
     # Creating the vector containing the indexes of the points of which the majority class have not reached the threshold
     # This is the indexes of the points that can be used for the creation of a new point
@@ -240,45 +311,23 @@ def oversampling_multioutput(df_features,df_labels,label_distance='logratio',nor
             if d<m:
                 k_n[np.argmax(k_n[:,1]),:]=[i,d]
                 m=max(k_n[:,1])
-                
-        # if we use only two base points:
-        if not use_three_points:
-            # Randomly choose a point among the k-nn
-            r_2=random.randint(0,k-1)
-            random_neighboor_lab=labels[int(k_n[r_2,0])]
-            random_neighboor_feat=features[int(k_n[r_2,0])]
 
-            # Randomly choose a weight between 0 and 1 and compute the features and labels of the new point
-            w=random.random()
-            newpoint_feat=w*random_neighboor_feat+(1-w)*base_point_feat
-            if label_distance=='euclidian':
-                newpoint_lab=w*random_neighboor_lab+(1-w)*base_point_lab
-            elif label_distance=='logratio':
-                newpoint_lab=create_logratio_point(random_neighboor_lab,base_point_lab,w,1-w)
-            elif label_distance=='compositional':
-                newpoint_lab=create_new_point(random_neighboor_lab,base_point_lab,w)
-            else:
-                raise Exception("The distance to compute the label of the new points is not correct. It should be 'compositional', 'euclidian' or 'logratio'.")
-        
-        # if we use three base points:
-        if use_three_points:
-            # Randomly choose two points among the k-nn
-            r_1,r_2 = random.sample(range(k), k=2)
-            random_neighboor_lab_1=labels[int(k_n[r_1,0])]
-            random_neighboor_feat_1=features[int(k_n[r_1,0])]
-            random_neighboor_lab_2=labels[int(k_n[r_2,0])]
-            random_neighboor_feat_2=features[int(k_n[r_2,0])]
-            
-            # Randomly choose weights between 0 and 1 and compute the features and labels of the new point.
-            w_1 = random.random()
-            w_2 = random.uniform(0, 1-w_1)
-            newpoint_feat = w_1*random_neighboor_feat_1 + w_2*random_neighboor_feat_2 + (1-w_1-w_2)*base_point_feat
-            if label_distance=='euclidian':
-                newpoint_lab= w_1*random_neighboor_lab_1 + w_2*random_neighboor_lab_2 +(1-w_1-w_2)*base_point_lab
-            elif label_distance=='logratio':
-                newpoint_lab=create_logratio_point_tri(base_point_lab,random_neighboor_lab_1,random_neighboor_lab_2,w_1,w_2)
-            elif label_distance=='compositional':
-                newpoint_lab=create_new_point_tri(base_point_lab,random_neighboor_lab_1,random_neighboor_lab_2,w_1,w_2)
+        # Randomly choose a point among the k-nn
+        r_2=random.randint(0,k-1)
+        random_neighboor_lab=labels[int(k_n[r_2,0])]
+        random_neighboor_feat=features[int(k_n[r_2,0])]
+
+        # Randomly choose a weight between 0 and 1 and compute the features and labels of the new point
+        w=random.random()
+        newpoint_feat=w*random_neighboor_feat+(1-w)*base_point_feat
+        if label_distance=='euclidian':
+            newpoint_lab=w*random_neighboor_lab+(1-w)*base_point_lab
+        elif label_distance=='logratio':
+            newpoint_lab=create_logratio_point(random_neighboor_lab,base_point_lab,w,1-w)
+        elif label_distance=='compositional':
+            newpoint_lab=create_new_point(random_neighboor_lab,base_point_lab,w)
+        else:
+            raise Exception("The distance to compute the label of the new points is not correct. It should be 'compositional', 'euclidian' or 'logratio'.")
         
         # Adding the new created point to the dataframes
         features=np.append(features,[newpoint_feat],axis=0)
@@ -292,19 +341,7 @@ def oversampling_multioutput(df_features,df_labels,label_distance='logratio',nor
             vec_reach_threshold=sorted(np.append(vec_reach_threshold,np.array(vec_not_reach)[ind_reach]))
             vec_not_reach = [i for i in vec_not_reach if i not in np.array(vec_not_reach)[ind_reach]]
             v_sum_not_reach=v_sum[vec_not_reach]
-            ind_to_keep=[i for i in ind_to_keep if np.argmax(labels[i]) in vec_not_reach]
-            
-            if verbose :
-                pourcent+=100/q
-                print('Progression :',pourcent,'% after',n_iter,
-                      'iterations\nClass distribution :\n    -classes reaching the threshold :',
-                      vec_reach_threshold,"\n    -classes not reaching the threshold :",vec_not_reach)
-        if verbose:
-            pbar.update(1)
-              
-    if verbose:
-        pbar.update(int(n_iter_max)-pbar.n)
-        pbar.close()
+            ind_to_keep=[i for i in ind_to_keep if np.argmax(labels[i]) in vec_not_reach]           
     
     # Final message depending on the convergence condition
     if verbose:
