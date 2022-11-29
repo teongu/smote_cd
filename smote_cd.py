@@ -168,7 +168,7 @@ def oversampling_multioutput(df_features,df_labels,label_distance='logratio',nor
     # [1] If no point has the smallest class as its dominant class, then we take the second smallest class, and so on.
     while len(elements_class_min)==0:
         class_min_to_take+=1
-        if class_min_to_take>len(v_sum):
+        if class_min_to_take>=len(v_sum):
             raise Exception("Not enough points to duplicate.")
         class_min=v_sum.argsort()[class_min_to_take]
         elements_class_min=[i for i in ind_to_keep if (np.argmax(labels[i])==class_min)]
@@ -199,7 +199,7 @@ def oversampling_multioutput(df_features,df_labels,label_distance='logratio',nor
                 # [1] If no point has the smallest class as its dominant class, then we take the second smallest class, and so on.
                 while len(elements_class_min)==0:
                     class_min_to_take+=1
-                    if class_min_to_take>len(v_sum):
+                    if class_min_to_take>=len(v_sum):
                         raise Exception("Not enough points to duplicate.")
                     class_min=v_sum.argsort()[class_min_to_take]
                     elements_class_min=[i for i in ind_to_keep if (np.argmax(labels[i])==class_min)]
