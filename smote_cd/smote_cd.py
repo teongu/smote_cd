@@ -358,13 +358,21 @@ def oversampling_multioutput(df_features,df_labels,label_distance='logratio',nor
 
 ##############################################################################################################
 
-def undersampling(y,method='majority'):
-    """ Performs a random undersampling.
-    INPUT :
-        - y (ndarray) : Array containing the compositional labels of the dataset to be undersampled. 
-        - method ({'majority','all'}; default='majority') : If 'majority', undersamples only the majority class. If 'all', undersamples all classes except the minority.
-    OUTPUT :
-        - list_removed_indexes (list) : A list containing the indexes of the elements to be removed. 
+def random_undersampling(y,method='majority'):
+    """ 
+    Perform a random undersampling on compositional data.
+    
+    Parameters
+    ----------
+    y : array-like, shape (n,q)
+        Array containing the compositional labels of the dataset to be undersampled. 
+    method : {'majority','all',int}
+        If 'majority', undersamples only the majority class. If 'all', undersamples all classes except the minority. If an int n, undersamples the first n classes (default is 'majority').
+        
+    Returns
+    -------
+    list
+        The list containing the indexes of the elements to be removed. 
     """
     n,q=np.shape(y)
     v_sum=sum(y)
@@ -373,30 +381,30 @@ def undersampling(y,method='majority'):
         threshold=v_sum[np.argsort(v_sum)[-2]] # the second highest value
         indices_majority=[i for i in range(n) if np.argmax(y[i])==i_max]
     elif method=='all':
-        i_min=np.argmin(v_sum)
-        threshold=v_sum[i_min] # the smallest value
-        indices_majority_all=[ [i for i in range(n) if np.argmax(y[i])==j ] for j in range(q) ]
-        #indices_majority=[i for i in range(n) if np.argmax(y[i])!=i_min]
+        sorted_classes = sorted(np.arange(q), key=lambda k: v_sum[k],reverse=True)
+        sorted_count = sorted(v_sum,reverse=True)
+        threshold=sorted_count[-1]
+        indices_majority_all = [i for i in range(n) if np.argmax(y[i]) in sorted_classes[:-1]]
+    elif type(method)==int:
+        sorted_classes = sorted(np.arange(q), key=lambda k: v_sum[k],reverse=True)
+        sorted_count = sorted(v_sum,reverse=True)
+        threshold=sorted_count[method]
+        indices_majority_all = [i for i in range(n) if np.argmax(y[i]) in sorted_classes[:method]]
     else:
         raise Exception("The undersampling method is unknown.")
     list_removed_indexes=[]
     while np.max(v_sum)>threshold:
         
-        if method=='all':
-            indices_majority = indices_majority_all[np.argmax(v_sum)]
-            i_to_remove=random.choice(indices_majority_all[np.argmax(v_sum)])
-            indices_majority_all[np.argmax(v_sum)] = np.delete(indices_majority_all[np.argmax(v_sum)],
-                                                               np.where(indices_majority==i_to_remove))
-            
-        else:
+        if method=='majority':
             i_to_remove=random.choice(indices_majority)
             indices_majority=np.delete(indices_majority,np.where(indices_majority==i_to_remove))
             
+        else:
+            indices_majority=[i for i in indices_majority_all if np.argmax(y[i])==np.argmax(v_sum)]
+            i_to_remove=random.choice(indices_majority)
+            indices_majority_all = np.delete(indices_majority_all, np.where(indices_majority_all==i_to_remove))
+            
         v_sum=v_sum-y[i_to_remove]
         list_removed_indexes.append(i_to_remove)
-        
-        # update threshold
-        if method=='all':
-            threshold = v_sum[i_min]
 
     return(list_removed_indexes)
