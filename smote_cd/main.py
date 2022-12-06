@@ -16,7 +16,7 @@ def distance_simplex(point1,point2):
     Compute the distance in the simplex between two vectors point1 and point2. 
     
     Parameters
-    ---------
+    ----------
     point1 : array_like, shape (n,)
         Vector to compute the distance.
     point2 : array_like, shape (n,)
@@ -156,7 +156,7 @@ def create_new_point(p1,p2,w):
 def oversampling_multioutput(df_features,df_labels,label_distance='logratio',normalize=False,
                              k=5,n_iter_max=100,norm=2,verbose=0,choice_new_point='min'):
     """ 
-    Perform the oversampling on data which has a compositional label. 
+    Perform the oversampling on data which has a compositional label.
     
     Parameters
     ----------
@@ -167,6 +167,15 @@ def oversampling_multioutput(df_features,df_labels,label_distance='logratio',nor
     label_distance : {'compositional', 'euclidian', 'logratio'}, optional
         The distance to be used to compute the label of the new point based on two existing points and a random weight 
         (the default is 'logratio').
+        
+        If 'compositional', the label is computed with the operations on the Simplex space, defined in Aitchison 1982
+        "The statistical analysis of compositional data".
+        
+        If 'euclidian', the label is computed with the Euclidian operators (not recommended, as it does not follow the 
+        principles of the Simplex space geometry).
+        
+        If 'logratio', the logratio transform is first applied to the labels, and the Euclidian operations are used to 
+        compute the new label, before transforming it back into the Simplex space.
     normalize : bool, optional
         Whether to normalize the features at the beggining of the algorithm (the default is False).
     k : int, optional
@@ -186,6 +195,29 @@ def oversampling_multioutput(df_features,df_labels,label_distance='logratio',nor
         The oversampled features, containing the old ones (first n values) and the created ones (last m values).
     labels : numpy.ndarray, shape (n+m,q)
         The oversampled labels, containing the old ones (first n values) and the created ones (last m values).
+       
+    Examples
+    --------
+    
+    The oversampling algorithm can be tried on synthetic generated dataset.
+    
+    >>> import numpy as np
+    >>> import smote_cd
+    
+    We first generate the synthetic dataset and keep only 20 points on one of the classes to make it imbalanced.
+    
+    >>> X,y,_ = smote_cd.dataset_generation.generate_dataset(n_features=2,n_classes=2,size=500,random_state=1)
+    >>> y = np.concatenate((y[np.argmax(X,axis=1)==0][:20],y[np.argmax(X,axis=1)==1]))
+    >>> X = np.concatenate((X[np.argmax(X,axis=1)==0][:20],X[np.argmax(X,axis=1)==1]))
+    >>> print(sum(y)/np.sum(y))
+    [0.29337655 0.70662345]
+
+    We then applied the oversampling and check the balance.
+    
+    >>> X_os,y_os = smote_cd.oversampling_multioutput(X,y)
+    >>> print(sum(y_os)/np.sum(y_os))
+    [0.47518739 0.52481261]
+    
     """
     
     # Checking the types
@@ -373,6 +405,33 @@ def random_undersampling(y,method='majority'):
     -------
     list
         The list containing the indexes of the elements to be removed. 
+        
+    Examples
+    --------
+    
+    The random undersampling algorithm can be tried on synthetic generated dataset.
+    
+    >>> import numpy as np
+    >>> import smote_cd
+    
+    We first generate the synthetic dataset and keep only 20 points on one of the classes to make it imbalanced.
+    
+    >>> X,y,_ = smote_cd.dataset_generation.generate_dataset(n_features=2,n_classes=2,size=500,random_state=1)
+    >>> y = np.concatenate((y[np.argmax(X,axis=1)==0][:20],y[np.argmax(X,axis=1)==1]))
+    >>> X = np.concatenate((X[np.argmax(X,axis=1)==0][:20],X[np.argmax(X,axis=1)==1]))
+    >>> print(sum(y)/np.sum(y))
+    [0.29337655 0.70662345]
+
+    We then applied the random undersampling to retrieve the indexes to remove, and remove them from the original dataset.
+    
+    >>> indexes_to_remove = smote_cd.random_undersampling(y)  
+    >>> y_us=np.delete(y,indexes_to_remove,axis=0)
+    >>> X_us=np.delete(X,indexes_to_remove,axis=0)
+    >>> print(sum(y_us)/np.sum(y_us))
+    [0.48177862 0.51822138]
+    
+    Your obtained results will not be exactly similar, as no random seed is given here.
+    
     """
     n,q=np.shape(y)
     v_sum=sum(y)

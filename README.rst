@@ -1,5 +1,3 @@
-# SMOTE for compositional data
-
 ###########################################################################
 SMOTE-CD : Synthetic Minority Oversampling TEchnique for Compositional Data
 ###########################################################################
@@ -9,7 +7,7 @@ for the case where the labels of the dataset are compositional data. The package
 can also be used when the features are compositional data (but not when both are
 at the same time), by swapping the features and labels when calling the function.
 
-**Documentation:** LINK TODO
+**Documentation:** LINK TODO (https://readthedocs.org/)
 
 Installation
 ============
@@ -19,7 +17,7 @@ SMOTE-CD can be installed on `Python 3.7 or above <https://www.python.org>`_.
 Dependencies
 ------------
 
-The following Python packages are required by COBYQA:
+The following Python packages are required by SMOTE-CD:
 
 * `NumPy <https://www.numpy.org>`_,
 * `SciPy <https://www.scipy.org>`_,

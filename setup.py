@@ -24,7 +24,7 @@ def setup_package():
         name='smote_cd',
         author='Teo Nguyen',
         author_email='teo.nguyen@univ-pau.fr',
-        version='0.1.7',
+        version='0.1.8',
         description='SMOTE oversampling for compositional data',
         long_description=open('README.rst').read().rstrip(),
         url='https://github.com/teongu/smote_cd',

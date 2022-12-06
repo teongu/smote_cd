@@ -11,7 +11,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "smote_cd"
-version = "0.1.7"
+version = "0.1.8"
 authors = [
   { name="Teo Nguyen", email="teo.nguyen@univ-pau.fr" },
 ]
