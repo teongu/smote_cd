@@ -22,11 +22,13 @@ def configuration(parent_package='', top_path=None):
 def setup_package():
     metadata = dict(
         name='smote_cd',
-        author='Teo Nguyen',
-        author_email='teo.nguyen@univ-pau.fr',
-        version='0.1.8',
-        description='SMOTE oversampling for compositional data',
+        author='Teo Nguyen, Benoit Liquet, Kerrie Mengersen, Baptiste Bougoüin',
+        maintainer='Teo Nguyen',
+        maintainer_email='teo.nguyen@univ-pau.fr',
+        version='0.1.10',
+        description='A package to perform SMOTE on compositional data.',
         long_description=open('README.rst').read().rstrip(),
+        long_description_content_type='text/x-rst',
         url='https://github.com/teongu/smote_cd',
         keywords='',
         license='BSD-3-Clause',

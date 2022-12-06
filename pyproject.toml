@@ -8,20 +8,3 @@ requires = [
     "scikit-learn>=0.24.1",
 ]
 build-backend = "setuptools.build_meta"
-
-[project]
-name = "smote_cd"
-version = "0.1.8"
-authors = [
-  { name="Teo Nguyen", email="teo.nguyen@univ-pau.fr" },
-]
-description = "A package to perform SMOTE on compositional data."
-readme = "README.md"
-requires-python = ">=3.7"
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "License :: OSI Approved :: BSD License",
-    "Operating System :: OS Independent",
-]
