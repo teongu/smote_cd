@@ -60,6 +60,7 @@ def setup_package():
             "scipy>=1.6.0",
             "scikit-learn>=0.24.1",
             "numpydoc>=1.5.0",
+            "pydata-sphinx-theme>=0.12.0",
         ],
     )
 
