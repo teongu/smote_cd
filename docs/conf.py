@@ -6,6 +6,8 @@
 
 import smote_cd
 
+import sphinx_rtd_theme
+
 # -- Path setup --------------------------------------------------------------
 
 # If extensions (or modules to document with autodoc) are in another directory,
