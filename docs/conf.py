@@ -31,6 +31,7 @@ author = 'Teo Nguyen'
 # ones.
 extensions = [
     'numpydoc',
+    'python_docs_theme',
     'sphinx.ext.autodoc'
 ]
 
