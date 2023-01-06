@@ -1,4 +1,4 @@
-Copyright (c) 2022, Teo Nguyen, Benoit Liquet, Kerrie Mengersen
+Copyright (c) 2023, Teo Nguyen, Benoit Liquet, Kerrie Mengersen, Baptiste Bougoüin
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

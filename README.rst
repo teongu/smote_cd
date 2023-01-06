@@ -7,7 +7,7 @@ for the case where the labels of the dataset are compositional data. The package
 can also be used when the features are compositional data (but not when both are
 at the same time), by swapping the features and labels when calling the function.
 
-**Documentation:** LINK TODO (https://readthedocs.org/)
+**Documentation:** https://smote-cd.readthedocs.io/
 
 Installation
 ============

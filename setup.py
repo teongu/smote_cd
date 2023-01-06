@@ -25,7 +25,7 @@ def setup_package():
         author='Teo Nguyen, Benoit Liquet, Kerrie Mengersen, Baptiste Bougoüin',
         maintainer='Teo Nguyen',
         maintainer_email='teo.nguyen@univ-pau.fr',
-        version='0.1.10',
+        version='0.2.1',
         description='A package to perform SMOTE on compositional data.',
         long_description=open('README.rst').read().rstrip(),
         long_description_content_type='text/x-rst',
