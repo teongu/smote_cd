@@ -22,7 +22,7 @@ import sphinx_rtd_theme
 # -- Project information -----------------------------------------------------
 
 project = 'smote_cd'
-copyright = '2022, Teo Nguyen'
+copyright = '2023, Teo Nguyen, Benoit Liquet, Kerrie Mengersen, Baptiste Bougoüin'
 author = 'Teo Nguyen'
 
 
