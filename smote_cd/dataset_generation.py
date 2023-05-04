@@ -156,7 +156,9 @@ def generate_dataset(n_features,n_classes,size,betas=None,random_state=None):
     # filling the features and labels
     for x in X:
         beta_dot_x=[np.dot(betas[i],x) for i in range(n_classes)]
-        alphas=[softmax(i,beta_dot_x) for i in range(n_classes)]
+        #alphas=[softmax(i,beta_dot_x) for i in range(n_classes)]
+        exp_beta_x = np.exp(beta_dot_x)
+        alphas = exp_beta_x/np.sum(exp_beta_x)
         y.append(np.random.dirichlet(alphas))
         
     y=np.array(y)
