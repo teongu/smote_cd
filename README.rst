@@ -29,3 +29,9 @@ User installation
 You can install SMOTE-CD using ``pip`` ::
 
     python -m pip install smote-cd
+
+
+Acknowledgments
+===============
+
+The Maupiti data used to develop this tool comes from the GLADYS research team (https://www.gladys-littoral.org/). The satellite image comes from Pléiades satellite. Pléiades © CNES _ 2021, Distribution AIRBUS DS
